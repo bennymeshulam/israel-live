@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#07070f">
+<title>📺 ישראל Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.12/hls.min.js"></script>
+<style>
+:root {
+  --bg:#07070f; --bar:#0c0c1a; --border:#1e1e38; --bord2:#ffffff11;
+  --text:#eeeef5; --muted:#6666aa; --dim:#3a3a60;
+  --c12:#e63946; --c13:#4361ee; --c14:#e9953a; --c15:#2a9d8f; --c11:#60a5fa;
+  --radio:#a855f7; --news:#22c55e; --sport:#f59e0b; --econ:#38bdf8;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Heebo',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;direction:rtl;padding-bottom:env(safe-area-inset-bottom);}
+
+/* ══ TOPBAR ══ */
+.top{height:50px;background:var(--bar);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:8px;flex-shrink:0;z-index:30;}
+.logo{font-weight:900;font-size:.95rem;background:linear-gradient(90deg,#fff 20%,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap;flex-shrink:0;}
+.tabs{display:flex;gap:3px;flex-shrink:0;}
+.tb{padding:4px 11px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Heebo',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tb.on{background:#1a1a30;border-color:#4444aa;color:var(--text);}
+.tb:hover:not(.on){color:var(--text);border-color:#333355;}
+.pills{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap;}
+.pill{padding:5px 10px;border-radius:10px;border:1px solid var(--bord2);background:#0e0e1e;color:var(--muted);font-family:'Heebo',sans-serif;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .22s;white-space:nowrap;display:flex;align-items:center;justify-content:center;height:38px;min-width:64px;}
+.pill img{height:26px;max-width:80px;object-fit:contain;filter:brightness(0.75) grayscale(0.3);transition:filter .22s;}
+.pill:hover img{filter:brightness(1) grayscale(0);}
+.pill:hover{border-color:#fff3;background:#181830;}
+.pill.on11 img,.pill.on12 img,.pill.on13 img,.pill.on14 img,.pill.on15 img,.pill.on24 img{filter:brightness(1.1) grayscale(0);}
+.pill.on11{background:#0a1a30;border-color:var(--c11);}
+.pill.on12{background:#2a0810;border-color:var(--c12);}
+.pill.on13{background:#080e2a;border-color:var(--c13);}
+.pill.on14{background:#2a1500;border-color:var(--c14);}
+.pill.on15{background:#041a18;border-color:var(--c15);}
+.right-area{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.clock{font-size:.88rem;font-weight:700;font-variant-numeric:tabular-nums;background:#14142a;border:1px solid var(--border);border-radius:7px;padding:4px 9px;white-space:nowrap;line-height:1.2;text-align:center;}
+.clock small{font-size:.58rem;color:var(--muted);font-weight:400;display:block;}
+.lbs{display:flex;gap:2px;}
+.lb{width:28px;height:28px;border-radius:6px;border:1px solid var(--bord2);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;}
+.lb svg{width:13px;height:13px;fill:currentColor;}
+.lb:hover{color:var(--text);border-color:#fff3;}
+.lb.on{background:#5555cc;border-color:#5555cc;color:#fff;}
+
+/* ══ MAIN ══ */
+.main{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ══ TV PANEL ══ */
+.tv-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.tv-panel{flex:1;display:grid;gap:2px;padding:2px;overflow:hidden;}
+.tv-panel.l1{grid-template-columns:1fr;grid-template-rows:1fr;}
+.tv-panel.l2h{grid-template-columns:1fr 1fr;}
+.tv-panel.l2v{grid-template-rows:1fr 1fr;}
+.tv-panel.l3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.tv-panel.l4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.tv-panel.l1 .slot:nth-child(n+2){display:none;}
+.tv-panel.l2h .slot:nth-child(n+3){display:none;}
+.tv-panel.l2v .slot:nth-child(n+3){display:none;}
+.tv-panel.l3 .slot:nth-child(4){display:none;}
+
+/* ══ SLOT ══ */
+.slot{background:#0a0a16;border:1px solid var(--border);border-radius:9px;overflow:hidden;display:flex;flex-direction:column;position:relative;}
+.slot-hd{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;background:#0c0c1c;border-bottom:1px solid var(--border);flex-shrink:0;min-height:32px;}
+.sname{font-size:.72rem;font-weight:700;color:var(--muted);}
+.sname.c12{color:var(--c12);} .sname.c13{color:#7c9bff;} .sname.c14{color:var(--c14);} .sname.c15{color:var(--c15);} .sname.c11{color:var(--c11);}
+.sacts{display:flex;gap:2px;}
+.sab{width:20px;height:20px;border-radius:5px;border:1px solid var(--bord2);background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.6rem;transition:all .15s;}
+.sab:hover{color:var(--text);border-color:#fff3;}
+.sbody{flex:1;position:relative;overflow:hidden;}
+.sbody iframe{width:100%;height:100%;border:none;display:block;}
+
+/* empty */
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--muted);}
+.empty .ei{font-size:2rem;opacity:.2;}
+.empty .et{font-size:.75rem;}
+.epills{display:flex;gap:6px;margin-top:8px;}
+.ep{padding:6px 10px;border-radius:8px;font-size:.68rem;font-weight:700;cursor:pointer;border:1px solid;background:#0e0e1e;font-family:'Heebo',sans-serif;transition:all .18s;display:flex;align-items:center;justify-content:center;min-width:52px;height:34px;}
+.ep img{height:20px;max-width:60px;object-fit:contain;filter:grayscale(0.3);}
+.ep.e12{border-color:#e6394644;}  .ep.e12:hover{background:#2a0810;border-color:var(--c12);}
+.ep.e13{border-color:#4361ee44;}  .ep.e13:hover{background:#080e2a;border-color:#4361ee;}
+.ep.e14{border-color:#e9953a44;}  .ep.e14:hover{background:#2a1500;border-color:var(--c14);}
+.ep.e15{border-color:#2a9d8f44;}  .ep.e15:hover{background:#041a18;border-color:var(--c15);}
+
+/* noEmbed card */
+.noembed{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;text-align:center;}
+.noembed .ne-icon{font-size:2.5rem;}
+.noembed .ne-title{font-size:1.1rem;font-weight:900;}
+.noembed .ne-note{font-size:.75rem;color:#aaa;line-height:1.6;max-width:220px;}
+.noembed .ne-btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:10px;color:#fff;border:none;font-family:'Heebo',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;transition:opacity .2s;}
+.noembed .ne-btn:hover{opacity:.82;}
+.noembed .ne-btn2{background:transparent!important;border:1px solid;margin-top:-4px;font-size:.8rem!important;padding:8px 18px!important;}
+
+/* fullscreen */
+.slot.fs{position:fixed;inset:0;z-index:300;border-radius:0;}
+
+/* ══ SIDE PANEL (radio / sites) ══ */
+.side{width:270px;background:var(--bar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;transition:width .25s;}
+.side.hide{width:0;overflow:hidden;border:none;}
+.side-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;}
+.stab{flex:1;padding:8px 4px;font-family:'Heebo',sans-serif;font-size:.72rem;font-weight:700;background:transparent;border:none;color:var(--muted);cursor:pointer;transition:all .18s;border-bottom:2px solid transparent;}
+.stab.on{color:var(--text);border-bottom-color:#6366f1;}
+.stab:hover:not(.on){color:var(--text);}
+
+/* radio */
+.radio-np{padding:10px 12px;background:#160d25;border-bottom:1px solid var(--border);flex-shrink:0;}
+.np-lbl{font-size:.58rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.np-name{font-size:.85rem;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.np-ctrl{display:flex;align-items:center;gap:7px;margin-top:7px;}
+.np-play{width:32px;height:32px;border-radius:50%;background:var(--radio);border:none;color:#fff;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s;}
+.np-play:hover{opacity:.82;}
+.wave{display:flex;gap:2px;align-items:flex-end;height:18px;}
+.wave span{display:block;width:3px;background:var(--radio);border-radius:2px;animation:wv .9s ease-in-out infinite;}
+.wave span:nth-child(1){height:7px;animation-delay:0s;}
+.wave span:nth-child(2){height:14px;animation-delay:.13s;}
+.wave span:nth-child(3){height:10px;animation-delay:.28s;}
+.wave span:nth-child(4){height:18px;animation-delay:.08s;}
+.wave span:nth-child(5){height:9px;animation-delay:.22s;}
+.wave span:nth-child(6){height:13px;animation-delay:.04s;}
+@keyframes wv{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.35);}}
+.wave.off span{animation:none;height:3px!important;opacity:.25;}
+.vol-row{display:flex;align-items:center;gap:5px;flex:1;}
+.vi{font-size:.72rem;color:var(--muted);}
+input[type=range]{flex:1;height:3px;-webkit-appearance:none;background:#2a2a45;border-radius:99px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:11px;height:11px;border-radius:50%;background:var(--radio);cursor:pointer;}
+
+.scroll-list{flex:1;overflow-y:auto;padding:6px;}
+.scroll-list::-webkit-scrollbar{width:3px;}
+.scroll-list::-webkit-scrollbar-thumb{background:#2a2a45;border-radius:3px;}
+
+/* station */
+.station{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;cursor:pointer;transition:background .15s;border:1px solid transparent;}
+.station:hover{background:#161628;}
+.station.playing{background:#1a0e2e;border-color:#6622aa;}
+.st-ico{width:34px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:900;flex-shrink:0;color:#fff;}
+.st-inf{flex:1;min-width:0;}
+.st-name{font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-desc{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.st-bars{display:flex;gap:2px;align-items:flex-end;height:12px;flex-shrink:0;}
+.st-bars span{display:block;width:2px;background:var(--radio);border-radius:1px;animation:wv .8s ease-in-out infinite;}
+.st-bars span:nth-child(1){height:5px;}
+.st-bars span:nth-child(2){height:9px;animation-delay:.1s;}
+.st-bars span:nth-child(3){height:6px;animation-delay:.2s;}
+
+/* site item */
+.site-cat{font-size:.62rem;font-weight:700;color:var(--muted);letter-spacing:1.5px;padding:10px 10px 4px;text-transform:uppercase;}
+.site-item{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;cursor:pointer;transition:background .15s;border:1px solid transparent;}
+.site-item:hover{background:#161628;}
+.site-item.active{border-color:#ffffff22;background:#12122a;}
+.si-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.si-name{font-size:.8rem;font-weight:700;flex:1;}
+.si-desc{font-size:.62rem;color:var(--muted);margin-top:1px;}
+.si-arrow{font-size:.7rem;color:var(--muted);}
+
+/* site viewer */
+.site-viewer{flex:1;display:none;flex-direction:column;overflow:hidden;}
+.site-viewer.show{display:flex;}
+.sv-head{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#0c0c1c;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sv-title{font-size:.78rem;font-weight:700;flex:1;}
+.sv-back{background:transparent;border:1px solid var(--bord2);color:var(--muted);border-radius:6px;padding:3px 9px;font-family:'Heebo',sans-serif;font-size:.7rem;cursor:pointer;transition:all .15s;}
+.sv-back:hover{color:var(--text);border-color:#fff3;}
+.sv-ext{background:transparent;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;padding:3px 6px;border-radius:5px;transition:all .15s;}
+.sv-ext:hover{color:var(--text);}
+.sv-body{flex:1;overflow:hidden;}
+.sv-body iframe{width:100%;height:100%;border:none;}
+
+/* ══ MOBILE (iPhone) ══ */
+@media (max-width: 700px) {
+  html,body{overflow:auto;height:auto;}
+  .top{height:auto;flex-wrap:wrap;padding:8px;gap:6px;position:sticky;top:0;z-index:100;}
+  .logo{font-size:.85rem;}
+  .tabs{order:1;width:100%;justify-content:center;}
+  .tb{padding:6px 12px;font-size:.78rem;flex:1;text-align:center;}
+  .pills{order:2;width:100%;justify-content:center;gap:6px;padding:4px 0;}
+  .pill{height:42px;min-width:56px;padding:4px 8px;}
+  .pill img{height:24px;max-width:70px;}
+  .right-area{order:0;width:100%;justify-content:space-between;}
+  .clock{font-size:.8rem;}
+  .lbs{gap:4px;}
+  .lb{width:34px;height:34px;}
+  
+  .main{flex-direction:column;overflow:visible;height:auto;}
+  
+  /* TV: single column, full height */
+  .tv-wrap{min-height:60vh;overflow:visible;}
+  .tv-panel{height:60vh;min-height:60vh;}
+  /* force single layout on mobile */
+  .tv-panel.l2h,.tv-panel.l2v,.tv-panel.l3,.tv-panel.l4{
+    grid-template-columns:1fr!important;
+    grid-template-rows:1fr!important;
+  }
+  .tv-panel.l2h .slot:nth-child(n+2),
+  .tv-panel.l2v .slot:nth-child(n+2),
+  .tv-panel.l3 .slot:nth-child(n+2),
+  .tv-panel.l4 .slot:nth-child(n+2){display:none;}
+  /* hide layout buttons on mobile */
+  .lbs{display:none;}
+  
+  /* side panel: full width below */
+  .side{width:100%!important;border-right:none;border-top:1px solid var(--border);}
+  .side.hide{height:0;overflow:hidden;}
+  
+  /* bigger touch targets */
+  .sab{width:30px;height:30px;font-size:.8rem;}
+  .epills{gap:8px;}
+  .ep{min-width:58px;height:42px;padding:6px;}
+  .ep img{height:22px;max-width:65px;}
+  .station{padding:12px 10px;}
+  .site-item{padding:12px 10px;}
+  
+  /* bottom bar */
+  .bot{height:auto;padding:6px 10px;}
+  
+  /* video element full height */
+  .sbody video{width:100%;height:100%;object-fit:contain;background:#000;}
+}
+@media (max-width: 400px) {
+  .pill img{height:20px;max-width:55px;}
+  .pill{min-width:48px;}
+}
+
+.bot{height:32px;background:var(--bar);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:center;gap:14px;flex-shrink:0;}
+.live-ind{display:flex;align-items:center;gap:5px;font-size:.65rem;color:var(--muted);letter-spacing:1px;}
+.ldot{width:6px;height:6px;background:#ef4444;border-radius:50%;animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.hint{font-size:.62rem;color:#ffffff18;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="top">
+  <div class="logo">📺 ישראל Live</div>
+  <div class="tabs">
+    <button class="tb on" id="tab-tv"    onclick="switchTab('tv')">טלוויזיה</button>
+    <button class="tb"    id="tab-radio" onclick="switchTab('radio')">📻 רדיו</button>
+    <button class="tb"    id="tab-sites" onclick="switchTab('sites')">🌐 אתרים</button>
+    <button class="tb"    id="tab-all"   onclick="switchTab('all')">הכל</button>
+  </div>
+  <div class="pills" id="tv-pills">
+    <button class="pill" id="pl11" onclick="setMain('11')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/9/97/Kan_11_logo.svg/200px-Kan_11_logo.svg.png" alt="כאן 11" onerror="this.outerHTML='כאן 11'"></button>
+    <button class="pill" id="pl12" onclick="setMain('12')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/5/5f/Keshet_12.svg/200px-Keshet_12.svg.png" alt="קשת 12" onerror="this.outerHTML='קשת 12'"></button>
+    <button class="pill" id="pl13" onclick="setMain('13')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/f/f3/Reshet_13.svg/200px-Reshet_13.svg.png" alt="רשת 13" onerror="this.outerHTML='רשת 13'"></button>
+    <button class="pill" id="pl14" onclick="setMain('14')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/e/ed/Now_14.svg/200px-Now_14.svg.png" alt="ערוץ 14" onerror="this.outerHTML='ערוץ 14'"></button>
+    <button class="pill" id="pl15" onclick="setMain('15')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/I24news_logo.svg/200px-i24news_logo.svg.png" alt="i24" onerror="this.outerHTML='i24'"></button>
+  </div>
+  <div class="right-area">
+    <div class="clock"><span id="ct">00:00:00</span><small id="cd"></small></div>
+    <div class="lbs" id="lbs">
+      <button class="lb on" id="lb1"  title="מסך אחד"      onclick="setLayout('l1')"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="12" rx="2"/></svg></button>
+      <button class="lb"    id="lb2h" title="2 זה לצד זה"   onclick="setLayout('l2h')"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="12" rx="1.5"/><rect x="8" y="1" width="5" height="12" rx="1.5"/></svg></button>
+      <button class="lb"    id="lb2v" title="2 זה מעל זה"   onclick="setLayout('l2v')"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="12" height="5" rx="1.5"/><rect x="1" y="8" width="12" height="5" rx="1.5"/></svg></button>
+      <button class="lb"    id="lb3"  title="3 מסכים"        onclick="setLayout('l3')"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" rx="1.5"/><rect x="8" y="1" width="5" height="5" rx="1.5"/><rect x="1" y="8" width="12" height="5" rx="1.5"/></svg></button>
+      <button class="lb"    id="lb4"  title="4 מסכים"        onclick="setLayout('l4')"><svg viewBox="0 0 14 14"><rect x="1" y="1" width="5" height="5" rx="1.5"/><rect x="8" y="1" width="5" height="5" rx="1.5"/><rect x="1" y="8" width="5" height="5" rx="1.5"/><rect x="8" y="8" width="5" height="5" rx="1.5"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TV WRAP -->
+  <div class="tv-wrap" id="tv-wrap">
+    <div class="tv-panel l1" id="tv-panel">
+      <!-- 4 slots -->
+      <div class="slot" id="s0"><div class="slot-hd"><span class="sname" id="s0n">בחר ערוץ</span><div class="sacts"><button class="sab" onclick="toggleFS(0)" title="מסך מלא">⛶</button><button class="sab" onclick="openExt(0)" title="פתח באתר">↗</button><button class="sab" onclick="clearSlot(0)" title="נקה">✕</button></div></div><div class="sbody" id="s0b"><div class="empty"><div class="ei">📺</div><div class="et">בחר ערוץ</div><div class="epills"><button class="ep e11" onclick="load(0,'11')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/9/97/Kan_11_logo.svg/80px-Kan_11_logo.svg.png" alt="11" onerror="this.outerHTML='11'"></button><button class="ep e12" onclick="load(0,'12')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/5/5f/Keshet_12.svg/80px-Keshet_12.svg.png" alt="12" onerror="this.outerHTML='12'"></button><button class="ep e13" onclick="load(0,'13')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/f/f3/Reshet_13.svg/80px-Reshet_13.svg.png" alt="13" onerror="this.outerHTML='13'"></button><button class="ep e14" onclick="load(0,'14')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/e/ed/Now_14.svg/80px-Now_14.svg.png" alt="14" onerror="this.outerHTML='14'"></button><button class="ep e15" onclick="load(0,'15')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/I24news_logo.svg/80px-i24news_logo.svg.png" alt="i24" onerror="this.outerHTML='i24'"></button></div></div></div></div>
+      <div class="slot" id="s1"><div class="slot-hd"><span class="sname" id="s1n">בחר ערוץ</span><div class="sacts"><button class="sab" onclick="toggleFS(1)" title="מסך מלא">⛶</button><button class="sab" onclick="openExt(1)" title="פתח באתר">↗</button><button class="sab" onclick="clearSlot(1)" title="נקה">✕</button></div></div><div class="sbody" id="s1b"><div class="empty"><div class="ei">📺</div><div class="et">בחר ערוץ</div><div class="epills"><button class="ep e11" onclick="load(1,'11')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/9/97/Kan_11_logo.svg/80px-Kan_11_logo.svg.png" alt="11" onerror="this.outerHTML='11'"></button><button class="ep e12" onclick="load(1,'12')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/5/5f/Keshet_12.svg/80px-Keshet_12.svg.png" alt="12" onerror="this.outerHTML='12'"></button><button class="ep e13" onclick="load(1,'13')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/f/f3/Reshet_13.svg/80px-Reshet_13.svg.png" alt="13" onerror="this.outerHTML='13'"></button><button class="ep e14" onclick="load(1,'14')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/e/ed/Now_14.svg/80px-Now_14.svg.png" alt="14" onerror="this.outerHTML='14'"></button><button class="ep e15" onclick="load(1,'15')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/I24news_logo.svg/80px-i24news_logo.svg.png" alt="i24" onerror="this.outerHTML='i24'"></button></div></div></div></div>
+      <div class="slot" id="s2"><div class="slot-hd"><span class="sname" id="s2n">בחר ערוץ</span><div class="sacts"><button class="sab" onclick="toggleFS(2)" title="מסך מלא">⛶</button><button class="sab" onclick="openExt(2)" title="פתח באתר">↗</button><button class="sab" onclick="clearSlot(2)" title="נקה">✕</button></div></div><div class="sbody" id="s2b"><div class="empty"><div class="ei">📺</div><div class="et">בחר ערוץ</div><div class="epills"><button class="ep e11" onclick="load(2,'11')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/9/97/Kan_11_logo.svg/80px-Kan_11_logo.svg.png" alt="11" onerror="this.outerHTML='11'"></button><button class="ep e12" onclick="load(2,'12')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/5/5f/Keshet_12.svg/80px-Keshet_12.svg.png" alt="12" onerror="this.outerHTML='12'"></button><button class="ep e13" onclick="load(2,'13')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/f/f3/Reshet_13.svg/80px-Reshet_13.svg.png" alt="13" onerror="this.outerHTML='13'"></button><button class="ep e14" onclick="load(2,'14')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/e/ed/Now_14.svg/80px-Now_14.svg.png" alt="14" onerror="this.outerHTML='14'"></button><button class="ep e15" onclick="load(2,'15')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/I24news_logo.svg/80px-i24news_logo.svg.png" alt="i24" onerror="this.outerHTML='i24'"></button></div></div></div></div>
+      <div class="slot" id="s3"><div class="slot-hd"><span class="sname" id="s3n">בחר ערוץ</span><div class="sacts"><button class="sab" onclick="toggleFS(3)" title="מסך מלא">⛶</button><button class="sab" onclick="openExt(3)" title="פתח באתר">↗</button><button class="sab" onclick="clearSlot(3)" title="נקה">✕</button></div></div><div class="sbody" id="s3b"><div class="empty"><div class="ei">📺</div><div class="et">בחר ערוץ</div><div class="epills"><button class="ep e11" onclick="load(3,'11')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/9/97/Kan_11_logo.svg/80px-Kan_11_logo.svg.png" alt="11" onerror="this.outerHTML='11'"></button><button class="ep e12" onclick="load(3,'12')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/5/5f/Keshet_12.svg/80px-Keshet_12.svg.png" alt="12" onerror="this.outerHTML='12'"></button><button class="ep e13" onclick="load(3,'13')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/f/f3/Reshet_13.svg/80px-Reshet_13.svg.png" alt="13" onerror="this.outerHTML='13'"></button><button class="ep e14" onclick="load(3,'14')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/e/ed/Now_14.svg/80px-Now_14.svg.png" alt="14" onerror="this.outerHTML='14'"></button><button class="ep e15" onclick="load(3,'15')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/I24news_logo.svg/80px-i24news_logo.svg.png" alt="i24" onerror="this.outerHTML='i24'"></button></div></div></div></div>
+    </div>
+  </div>
+
+  <!-- SIDE PANEL -->
+  <div class="side hide" id="side">
+    <div class="side-tabs">
+      <button class="stab on" id="stab-radio" onclick="switchSide('radio')">📻 רדיו</button>
+      <button class="stab"    id="stab-sites" onclick="switchSide('sites')">🌐 אתרים</button>
+    </div>
+
+    <!-- RADIO SECTION -->
+    <div id="radio-sec" style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+      <div class="radio-np">
+        <div class="np-lbl">מנגן עכשיו</div>
+        <div class="np-name" id="np-name">—</div>
+        <div class="np-ctrl">
+          <button class="np-play" id="play-btn" onclick="togglePlay()">▶</button>
+          <div class="wave off" id="wave"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="vol-row">
+            <span class="vi">🔈</span>
+            <input type="range" id="vol" min="0" max="1" step="0.02" value="0.8" oninput="setVol(this.value)">
+            <span class="vi">🔊</span>
+          </div>
+        </div>
+      </div>
+      <div class="scroll-list" id="radio-list"></div>
+    </div>
+
+    <!-- SITES SECTION -->
+    <div id="sites-sec" style="display:none;flex-direction:column;flex:1;overflow:hidden;min-height:0;">
+      <!-- sites list -->
+      <div class="scroll-list" id="sites-list" style="display:block;"></div>
+      <!-- site iframe viewer -->
+      <div class="site-viewer" id="sv">
+        <div class="sv-head">
+          <button class="sv-back" onclick="closeSite()">← חזור</button>
+          <span class="sv-title" id="sv-title"></span>
+          <button class="sv-ext" onclick="openSiteExt()" title="פתח בדפדפן">↗</button>
+        </div>
+        <div class="sv-body"><iframe id="sv-frame" src=""></iframe></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bot">
+  <div class="live-ind"><span class="ldot"></span>שידור חי</div>
+  <div class="hint">Esc = יציאה ממסך מלא • לחץ על ערוץ להפעלה</div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+// ══════════════════════════════════════════
+// CHANNELS
+// ══════════════════════════════════════════
+const CH = {
+  '11':{
+    name:'כאן 11', cls:'c11', color:'#60a5fa',
+    noEmbed:false, isHls:true,
+    hlsStreams:[
+      'https://kan11.media.kan.org.il/hls/live/2024514/2024514/master.m3u8',
+      'https://kan11sub.media.kan.org.il/hls/live/2024678/2024678/master.m3u8',
+    ],
+    directUrl:'https://www.kan.org.il/live/',
+    bg:'linear-gradient(135deg,#0a1628,#1a3a6e)'
+  },
+  '12':{
+    name:'קשת 12', cls:'c12', color:'#e63946',
+    noEmbed:false, isHls:true,
+    hlsStreams:[
+      'http://mako-streaming.akamaized.net/direct/hls/live/2033791/k12dvr/index_2200.m3u8',
+      'http://mako-streaming.akamaized.net/direct/hls/live/2033791/k12/index_2200.m3u8',
+    ],
+    directUrl:'https://www.mako.co.il/mako-vod-live-tv/VOD-6540b8dcb64fd31006.htm',
+    bg:'linear-gradient(135deg,#200508,#4d0d14)'
+  },
+  '13':{
+    name:'רשת 13', cls:'c13', color:'#4361ee',
+    noEmbed:false, isHls:false,
+    url:'https://13tv.co.il/live/?autoplay=1',
+    directUrl:'https://13tv.co.il/live/',
+    bg:'linear-gradient(135deg,#050a25,#0d1a5c)'
+  },
+  '14':{
+    name:'ערוץ 14', cls:'c14', color:'#e9953a',
+    noEmbed:false, isHls:false,
+    url:'https://now14.co.il/live/',
+    directUrl:'https://now14.co.il/live/'
+  },
+  '15':{
+    name:'i24NEWS', cls:'c15', color:'#2a9d8f',
+    noEmbed:false, isHls:false,
+    url:'https://video.i24news.tv/',
+    directUrl:'https://www.i24news.tv/he/tv/live',
+    bg:'linear-gradient(135deg,#041a18,#074a3e)'
+  }
+};
+
+// ══════════════════════════════════════════
+// RADIO
+// ══════════════════════════════════════════
+const RADIOS = [
+  { id:'r103',    name:'103FM',       desc:'ללא הפסקה – אקטואליה', color:'#e63946',
+    streams:['https://cdn.cybercdn.live/103FM/Live/icecast.audio','https://cloudstreaming.co.il/103fm/mp3/icecast.audio'] },
+  { id:'r102',    name:'102FM',       desc:'רדיו תל אביב',          color:'#4361ee',
+    streams:['https://102.livecdn.biz/102fm_mp3','https://cdn.cybercdn.live/102FM/Live/icecast.audio'] },
+  { id:'r100',    name:'100FM',       desc:'רדיוס – מוזיקה',         color:'#f4a261',
+    streams:['https://cdn.cybercdn.live/Radios_100FM/Audio/icecast.audio','https://100fm.co.il:8443/stream'] },
+  { id:'r99',     name:'99FM ECO',    desc:'אקו – אקטואליה',         color:'#2a9d8f',
+    streams:['https://eco-live.mediacast.co.il/99fm_aac','https://cdn.cybercdn.live/99FM/Live/icecast.audio'] },
+  { id:'rreshet', name:"רשת ב'",      desc:'כאן ב – ציבורי',          color:'#a855f7',
+    streams:['https://kanliveicy.media.kan.org.il/icy/kanbet_mp3','https://radiostreams.019.net.il/reshet_bet/playlist.m3u8'] },
+  { id:'rlev',    name:'לב המדינה',  desc:'91FM – ישראלי',            color:'#e9953a',
+    streams:['https://cdn.cybercdn.live/Lev_Hamedina/Audio/icecast.audio','https://cloudstreaming.co.il/levhamedina/mp3/icecast.audio'] },
+];
+
+// ══════════════════════════════════════════
+// SITES
+// ══════════════════════════════════════════
+const SITES = [
+  { cat:'📰 חדשות ואקטואליה' },
+  { id:'ynet',    name:'Ynet',        desc:'ידיעות אחרונות',   color:'#ef4444', url:'https://www.ynet.co.il' },
+  { id:'walla',   name:'Walla! חדשות',desc:'חדשות ואקטואליה',  color:'#3b82f6', url:'https://news.walla.co.il' },
+  { id:'maariv',  name:'מעריב',        desc:'חדשות וכתבות',     color:'#8b5cf6', url:'https://www.maariv.co.il' },
+  { id:'haaretz', name:'הארץ',         desc:'עיתון דה-מרקר',    color:'#6b7280', url:'https://www.haaretz.co.il' },
+  { id:'n12',     name:'N12',          desc:'חדשות 12',          color:'#e63946', url:'https://www.n12.co.il' },
+  { cat:'⚽ ספורט' },
+  { id:'sport5',  name:'ספורט 5',     desc:'ספורט ישראלי',     color:'#f59e0b', url:'https://www.sport5.co.il' },
+  { id:'one',     name:'ONE',          desc:'כדורגל ישראלי',     color:'#22c55e', url:'https://www.one.co.il' },
+  { id:'livescore',name:'Livescore',   desc:'תוצאות חי',         color:'#10b981', url:'https://www.livescore.com' },
+  { cat:'💰 כלכלה ושוק' },
+  { id:'calcalist',name:'כלכליסט',    desc:'עיתון כלכלה',       color:'#38bdf8', url:'https://www.calcalist.co.il' },
+  { id:'themarker',name:'TheMarker',   desc:'כלכלה ועסקים',      color:'#0ea5e9', url:'https://www.themarker.com' },
+  { id:'bizportal',name:'Bizportal',   desc:'בורסה ומניות',      color:'#6366f1', url:'https://www.bizportal.co.il' },
+  { id:'tase',    name:'הבורסה ת"א',  desc:'TASE Live',          color:'#f472b6', url:'https://www.tase.co.il' },
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+let slotState=[null,null,null,null];
+let layout='l1';
+let currentTab='tv';
+let currentSideTab='radio';
+let audioEl=document.getElementById('audio');
+let currentRadio=null;
+let isPlaying=false;
+let currentSiteId=null;
+let currentSiteUrl=null;
+
+// ══════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  const pad=x=>String(x).padStart(2,'0');
+  document.getElementById('ct').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;
+  const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  document.getElementById('cd').textContent=`${days[n.getDay()]} ${n.getDate()}/${n.getMonth()+1}`;
+}
+setInterval(tick,1000); tick();
+
+// ══════════════════════════════════════════
+// TV
+// ══════════════════════════════════════════
+function showFallback(si, ch){
+  document.getElementById(`s${si}b`).innerHTML=`
+    <div class="noembed" style="background:${ch.bg||'linear-gradient(135deg,#0a0a1a,#1a1a3a)'}">
+      <div class="ne-icon">📺</div>
+      <div class="ne-title" style="color:${ch.color}">${ch.name}</div>
+      <div class="ne-note">לא ניתן לטעון שידור ישירות.<br>לחץ לצפייה באתר הרשמי:</div>
+      <a href="${ch.directUrl}" target="_blank" rel="noopener" class="ne-btn" style="background:${ch.color}">▶ פתח ${ch.name}</a>
+    </div>`;
+}
+
+function loadHls(si, ch, idx){
+  if(idx >= ch.hlsStreams.length){ showFallback(si, ch); return; }
+  const url = ch.hlsStreams[idx];
+  if(url.startsWith('##iframe##')){
+    document.getElementById(`s${si}b`).innerHTML=`<iframe src="${url.replace('##iframe##','')}" allowfullscreen allow="autoplay;fullscreen;picture-in-picture"></iframe>`;
+    return;
+  }
+  const vid = `v${si}`;
+  document.getElementById(`s${si}b`).innerHTML=`
+    <video id="${vid}" style="width:100%;height:100%;background:#000;display:block" muted controls playsinline webkit-playsinline></video>
+    <div id="play-overlay-${si}" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);cursor:pointer;z-index:10;gap:12px;" onclick="startPlay(${si})">
+      <div style="width:72px;height:72px;border-radius:50%;background:${ch.color};display:flex;align-items:center;justify-content:center;font-size:2rem;box-shadow:0 0 30px ${ch.color}88;">▶</div>
+      <div style="color:#fff;font-family:Heebo,sans-serif;font-size:.9rem;font-weight:700;">${ch.name}</div>
+      <div style="color:#aaa;font-family:Heebo,sans-serif;font-size:.72rem;">לחץ להפעלה</div>
+    </div>`;
+  const video = document.getElementById(vid);
+  if(Hls.isSupported()){
+    const hls = new Hls({ lowLatencyMode:true, maxBufferLength:15, enableWorker:false });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, ()=>{
+      const ov = document.getElementById(`play-overlay-${si}`);
+      if(ov) ov.onclick = ()=>{ video.play(); ov.style.display='none'; };
+    });
+    hls.on(Hls.Events.ERROR, (e,d)=>{ if(d.fatal) loadHls(si, ch, idx+1); });
+    video._hls = hls;
+  } else if(video.canPlayType('application/vnd.apple.mpegurl')){
+    video.src = url;
+    video.load();
+    video.addEventListener('error', ()=>loadHls(si, ch, idx+1), {once:true});
+  } else {
+    loadHls(si, ch, idx+1);
+  }
+}
+
+function startPlay(si){
+  const video = document.getElementById(`v${si}`);
+  const ov = document.getElementById(`play-overlay-${si}`);
+  if(!video) return;
+  video.play().then(()=>{ if(ov) ov.style.display='none'; }).catch(()=>{});
+  if(ov) ov.style.display='none';
+}
+
+function load(si, chId){
+  const ch = CH[chId];
+  slotState[si] = chId;
+  const nm = document.getElementById(`s${si}n`);
+  nm.textContent = ch.name;
+  nm.className = 'sname ' + ch.cls;
+  if(ch.isHls){
+    loadHls(si, ch, 0);
+  } else {
+    document.getElementById(`s${si}b`).innerHTML=`<iframe src="${ch.url}" allowfullscreen allow="autoplay;fullscreen;picture-in-picture"></iframe>`;
+  }
+  updatePills();
+}
+
+function clearSlot(si){
+  slotState[si]=null;
+  document.getElementById(`s${si}n`).textContent='בחר ערוץ';
+  document.getElementById(`s${si}n`).className='sname';
+  document.getElementById(`s${si}b`).innerHTML=`<div class="empty"><div class="ei">📺</div><div class="et">בחר ערוץ</div><div class="epills">
+    <button class="ep e11" onclick="load(${si},'11')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/9/97/Kan_11_logo.svg/80px-Kan_11_logo.svg.png" alt="11" onerror="this.outerHTML='11'"></button>
+    <button class="ep e12" onclick="load(${si},'12')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/5/5f/Keshet_12.svg/80px-Keshet_12.svg.png" alt="12" onerror="this.outerHTML='12'"></button>
+    <button class="ep e13" onclick="load(${si},'13')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/f/f3/Reshet_13.svg/80px-Reshet_13.svg.png" alt="13" onerror="this.outerHTML='13'"></button>
+    <button class="ep e14" onclick="load(${si},'14')"><img src="https://upload.wikimedia.org/wikipedia/he/thumb/e/ed/Now_14.svg/80px-Now_14.svg.png" alt="14" onerror="this.outerHTML='14'"></button>
+    <button class="ep e15" onclick="load(${si},'15')"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/I24news_logo.svg/80px-i24news_logo.svg.png" alt="i24" onerror="this.outerHTML='i24'"></button>
+  </div></div>`;
+  updatePills();
+}
+
+function openExt(si){
+  const ch=slotState[si];
+  if(ch) window.open(CH[ch].directUrl||CH[ch].url,'_blank');
+}
+
+function setMain(chId){ load(0,chId); }
+
+function updatePills(){
+  ['11','12','13','14','15'].forEach(id=>{
+    const el=document.getElementById('pl'+id);
+    if(!el) return;
+    el.className=slotState.includes(id)?`pill on${id}`:'pill';
+  });
+}
+
+function toggleFS(si){
+  const sl=document.getElementById('s'+si);
+  if(sl.classList.contains('fs')) sl.classList.remove('fs');
+  else{ document.querySelectorAll('.slot').forEach(s=>s.classList.remove('fs')); sl.classList.add('fs'); }
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.slot').forEach(s=>s.classList.remove('fs'));
+});
+
+// ══════════════════════════════════════════
+// LAYOUT
+// ══════════════════════════════════════════
+function setLayout(mode){
+  layout=mode;
+  document.getElementById('tv-panel').className='tv-panel '+mode;
+  ['l1','l2h','l2v','l3','l4'].forEach(m=>document.getElementById('lb'+m.slice(1)).classList.toggle('on',m===mode));
+  const fills={l2h:[0,1],l2v:[0,1],l3:[0,1,2],l4:[0,1,2,3]};
+  const ids=['11','12','13','14','15'];
+  if(fills[mode]) fills[mode].forEach((si,i)=>{ if(!slotState[si]&&ids[i]) load(si,ids[i]); });
+}
+
+// ══════════════════════════════════════════
+// TABS
+// ══════════════════════════════════════════
+function switchTab(tab){
+  currentTab=tab;
+  ['tv','radio','sites','all'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('on',t===tab));
+  const tv=document.getElementById('tv-wrap');
+  const side=document.getElementById('side');
+  const lbs=document.getElementById('lbs');
+  const tvp=document.getElementById('tv-pills');
+  if(tab==='tv'){
+    tv.style.display=''; side.classList.add('hide');
+    lbs.style.display=''; tvp.style.display='';
+  } else if(tab==='radio'){
+    tv.style.display='none'; side.classList.remove('hide');
+    lbs.style.display='none'; tvp.style.display='none';
+    switchSide('radio');
+  } else if(tab==='sites'){
+    tv.style.display='none'; side.classList.remove('hide');
+    lbs.style.display='none'; tvp.style.display='none';
+    switchSide('sites');
+  } else { // all
+    tv.style.display=''; side.classList.remove('hide');
+    lbs.style.display=''; tvp.style.display='';
+  }
+}
+
+function switchSide(which){
+  currentSideTab=which;
+  document.getElementById('stab-radio').classList.toggle('on',which==='radio');
+  document.getElementById('stab-sites').classList.toggle('on',which==='sites');
+  document.getElementById('radio-sec').style.display=which==='radio'?'flex':'none';
+  document.getElementById('sites-sec').style.display=which==='sites'?'flex':'none';
+}
+
+// ══════════════════════════════════════════
+// RADIO
+// ══════════════════════════════════════════
+function buildRadio(){
+  document.getElementById('radio-list').innerHTML=RADIOS.map(r=>`
+    <div class="station" id="si-${r.id}" onclick="playRadio('${r.id}')">
+      <div class="st-ico" style="background:${r.color}22;border:1px solid ${r.color}44;color:${r.color}">${r.name.replace('FM','').replace("'",'')}</div>
+      <div class="st-inf">
+        <div class="st-name" style="color:${r.color}">${r.name}</div>
+        <div class="st-desc">${r.desc}</div>
+      </div>
+      <div class="st-bars" id="sb-${r.id}" style="display:none"><span></span><span></span><span></span></div>
+    </div>`).join('');
+}
+
+function tryStream(r,idx){
+  if(idx>=r.streams.length){
+    document.getElementById('np-name').textContent=r.name+' — שגיאה בטעינה';
+    document.getElementById('wave').classList.add('off');
+    document.getElementById('play-btn').textContent='▶';
+    document.getElementById(`sb-${r.id}`).style.display='none';
+    document.getElementById(`si-${r.id}`).classList.remove('playing');
+    currentRadio=null; isPlaying=false; return;
+  }
+  audioEl.src=r.streams[idx];
+  audioEl.volume=parseFloat(document.getElementById('vol').value);
+  audioEl.play()
+    .then(()=>{ isPlaying=true; document.getElementById('play-btn').textContent='⏸'; document.getElementById('wave').classList.remove('off'); })
+    .catch(()=>tryStream(r,idx+1));
+}
+
+function playRadio(rid){
+  const r=RADIOS.find(x=>x.id===rid);
+  if(!r) return;
+  if(currentRadio===rid&&isPlaying){ stopRadio(); return; }
+  document.querySelectorAll('.station').forEach(el=>el.classList.remove('playing'));
+  document.querySelectorAll('[id^="sb-"]').forEach(el=>el.style.display='none');
+  audioEl.pause();
+  document.getElementById(`si-${rid}`).classList.add('playing');
+  document.getElementById(`sb-${rid}`).style.display='flex';
+  document.getElementById('np-name').textContent=r.name+' — '+r.desc;
+  document.getElementById('play-btn').textContent='…';
+  document.getElementById('wave').classList.remove('off');
+  currentRadio=rid;
+  tryStream(r,0);
+}
+
+function stopRadio(){
+  audioEl.pause(); audioEl.src='';
+  isPlaying=false; currentRadio=null;
+  document.getElementById('play-btn').textContent='▶';
+  document.getElementById('wave').classList.add('off');
+  document.getElementById('np-name').textContent='—';
+  document.querySelectorAll('.station').forEach(el=>el.classList.remove('playing'));
+  document.querySelectorAll('[id^="sb-"]').forEach(el=>el.style.display='none');
+}
+
+function togglePlay(){
+  if(!currentRadio) return;
+  if(isPlaying){ audioEl.pause(); isPlaying=false; document.getElementById('play-btn').textContent='▶'; document.getElementById('wave').classList.add('off'); }
+  else { audioEl.play(); isPlaying=true; document.getElementById('play-btn').textContent='⏸'; document.getElementById('wave').classList.remove('off'); }
+}
+
+function setVol(v){ audioEl.volume=v; }
+
+// ══════════════════════════════════════════
+// SITES
+// ══════════════════════════════════════════
+function buildSites(){
+  const list=document.getElementById('sites-list');
+  list.innerHTML=SITES.map(s=>{
+    if(s.cat) return `<div class="site-cat">${s.cat}</div>`;
+    return `<div class="site-item" id="site-${s.id}" onclick="openSite('${s.id}','${s.url}','${s.name}')">
+      <div class="si-dot" style="background:${s.color}"></div>
+      <div style="flex:1;min-width:0">
+        <div class="si-name">${s.name}</div>
+        <div class="si-desc">${s.desc}</div>
+      </div>
+      <span class="si-arrow">›</span>
+    </div>`;
+  }).join('');
+}
+
+function openSite(id,url,name){
+  currentSiteId=id; currentSiteUrl=url;
+  document.querySelectorAll('.site-item').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById('site-'+id);
+  if(el) el.classList.add('active');
+  document.getElementById('sv-title').textContent=name;
+  document.getElementById('sv-frame').src=url;
+  document.getElementById('sites-list').style.display='none';
+  document.getElementById('sv').classList.add('show');
+}
+
+function closeSite(){
+  document.getElementById('sv-frame').src='';
+  document.getElementById('sv').classList.remove('show');
+  document.getElementById('sites-list').style.display='block';
+  document.querySelectorAll('.site-item').forEach(el=>el.classList.remove('active'));
+  currentSiteId=null; currentSiteUrl=null;
+}
+
+function openSiteExt(){
+  if(currentSiteUrl) window.open(currentSiteUrl,'_blank');
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+buildRadio();
+buildSites();
+load(0,'14'); // channel 14 – confirmed working default
+</script>
+</body>
+</html>
