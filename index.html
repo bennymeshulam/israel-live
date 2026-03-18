@@ -341,11 +341,10 @@ const CH = {
   },
   '12':{
     name:'קשת 12', cls:'c12', color:'#e63946',
-    noEmbed:false, isHls:true,
-    hlsStreams:[
-      'http://mako-streaming.akamaized.net/direct/hls/live/2033791/k12dvr/index_2200.m3u8',
-      'http://mako-streaming.akamaized.net/direct/hls/live/2033791/k12/index_2200.m3u8',
-    ],
+    noEmbed:false, isHls:false,
+    isProxy:true,
+    proxyUrl:'https://www.smartv.online/12',
+    proxyTop:'-350px', proxyLeft:'0px', proxyWidth:'100%', proxyHeight:'calc(100% + 450px)',
     directUrl:'https://www.mako.co.il/mako-vod-live-tv/VOD-6540b8dcb64fd31006.htm',
     bg:'linear-gradient(135deg,#200508,#4d0d14)'
   },
@@ -354,7 +353,7 @@ const CH = {
     noEmbed:false, isHls:false,
     isProxy:true,
     proxyUrl:'https://livetvfast.com/israel/154-channel-13.html',
-    proxyTop:'-55px', proxyLeft:'0px', proxyWidth:'100%', proxyHeight:'calc(100% + 55px)',
+    proxyTop:'-100px', proxyLeft:'0px', proxyWidth:'100%', proxyHeight:'calc(100% + 120px)',
     directUrl:'https://13tv.co.il/live/',
     bg:'linear-gradient(135deg,#050a25,#0d1a5c)'
   },
