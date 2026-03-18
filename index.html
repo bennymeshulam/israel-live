@@ -341,10 +341,12 @@ const CH = {
   },
   '12':{
     name:'קשת 12', cls:'c12', color:'#e63946',
-    noEmbed:false, isHls:false,
-    isProxy:true,
-    proxyUrl:'https://www.smartv.online/12',
-    proxyTop:'-350px', proxyLeft:'0px', proxyWidth:'100%', proxyHeight:'calc(100% + 450px)',
+    noEmbed:false, isHls:true,
+    hlsStreams:[
+      'http://mako-streaming.akamaized.net/direct/hls/live/2033791/k12dvr/index_2200.m3u8',
+      'http://mako-streaming.akamaized.net/direct/hls/live/2033791/k12/index_2200.m3u8',
+      'http://mako-streaming.akamaized.net/direct/hls/live/2035325/k12cc/index_2200.m3u8',
+    ],
     directUrl:'https://www.mako.co.il/mako-vod-live-tv/VOD-6540b8dcb64fd31006.htm',
     bg:'linear-gradient(135deg,#200508,#4d0d14)'
   },
